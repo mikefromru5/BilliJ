@@ -1,0 +1,73 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+
+public class Player : MonoBehaviour
+{
+    [SerializeField] private float speed = 3f;
+    [SerializeField] private float jumpForce = 10f;
+    private bool isGrounded = false;
+
+
+
+    private Rigidbody2D rb;
+    private SpriteRenderer sprite;
+
+    private void Awake()
+    {
+        sprite = GetComponentInChildren<SpriteRenderer>();
+        rb = GetComponent<Rigidbody2D>();
+        // update sprite(field), get links on this object
+    }
+
+    private void Run()
+    {
+        Vector3 dir = transform.right * Input.GetAxis("Horizontal");
+        transform.position = Vector3.MoveTowards(transform.position, transform.position + dir, speed * Time.deltaTime);
+        sprite.flipX = dir.x < 0.0f; // discription of Run()
+    }
+    // update is called once per frame 
+    private void Update()
+    {
+        if (Input.GetButton("Horizontal"))
+            Run();
+        if (isGrounded && Input.GetButtonDown("Jump")) // get function Run() & Jump() with every frame update
+            Jump();
+    }
+    private void FixedUpdate()
+    {
+        CheckGround();
+    }
+
+    private void Jump()
+    {
+        rb.AddForce(transform.up * jumpForce, ForceMode2D.Impulse);
+        // discription of Jump()
+    }
+
+    private void CheckGround()
+    {
+        Collider2D[] collider = Physics2D.OverlapCircleAll(transform.position, 0.3f);
+        isGrounded = collider.Length > 1; // check for the Player can be on the platform, and not falling through the platform
+    }
+
+
+    private void OnTriggerEnter2D(Collider2D other) //logic of respawn(starting again) 
+    {
+        if (other.tag == "Respawn")
+        {
+            SceneManager.LoadScene(0);
+        }
+
+        if (other.tag == ("Coin")) // logic of coin collect, and why coins are disapearing after player colected it ( destroy) 
+        {
+            CoinCollect.coinCount += 1;
+            Destroy(other.gameObject);
+
+
+        }
+    }
+
+
+}
